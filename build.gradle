@@ -1,0 +1,83 @@
+plugins {
+    id "idea"
+    id "groovy"
+    id "com.github.erdi.webdriver-binaries" version "2.2"
+    id "com.github.erdi.idea-base" version "2.2"
+}
+
+ext {
+    // The drivers we want to use
+    drivers = ["firefox", "chrome", "chromeHeadless"]
+
+    ext {
+        gebVersion = '+'
+        seleniumVersion = '3.14.0'
+        chromeDriverVersion = '98.0.4758.80'
+        geckoDriverVersion = '0.30.0'
+    }
+}
+
+configurations.all {
+    resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+}
+
+repositories {
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
+    mavenCentral()
+}
+
+dependencies {
+    // If using Spock, need to depend on geb-spock
+    testCompile "org.gebish:geb-spock:$gebVersion"
+
+    // If using JUnit, need to depend on geb-junit
+    testCompile "org.gebish:geb-junit4:$gebVersion"
+    testCompile "junit:junit:4.13.2"
+
+    // Drivers
+    testCompile "org.seleniumhq.selenium:selenium-chrome-driver:$seleniumVersion"
+    testCompile "org.seleniumhq.selenium:selenium-firefox-driver:$seleniumVersion"
+}
+
+webdriverBinaries {
+    chromedriver {
+        version = chromeDriverVersion
+        fallbackTo32Bit = true
+        architecture = "X86_64"
+    }
+    geckodriver {
+        version = geckoDriverVersion
+        architecture = "X86_64"
+    }
+    driverUrlsConfiguration = resources.text.fromUri("https://raw.githubusercontent.com/kakavi/webdriverextensions-maven-plugin-repository/master/repository-3.0.json")
+}
+
+drivers.each { driver ->
+    task "${driver}Test"(type: Test) {
+        group JavaBasePlugin.VERIFICATION_GROUP
+
+        outputs.upToDateWhen { false }  // Always run tests
+
+        systemProperty "geb.build.reportsDir", reporting.file("geb/$name")
+        systemProperty "geb.env", driver
+    }
+}
+
+test {
+    dependsOn drivers.collect { tasks["${it}Test"] }
+    enabled = false
+}
+
+tasks.withType(Test) {
+    maxHeapSize = "1g"
+    jvmArgs '-XX:MaxMetaspaceSize=128m'
+    testLogging {
+        exceptionFormat = 'full'
+    }
+}
+
+tasks.withType(GroovyCompile) {
+    groovyOptions.forkOptions.memoryMaximumSize = '256m'
+}
