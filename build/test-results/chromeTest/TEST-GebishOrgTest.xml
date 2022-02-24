@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="GebishOrgTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2022-02-24T14:49:01" hostname="VICTORs-MacBook-Air.local" time="2.449">
+  <properties/>
+  <testcase name="canGetToTheCurrentBookOfGeb" classname="GebishOrgTest" time="2.449"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
